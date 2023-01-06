@@ -1,0 +1,108 @@
+{
+  "$schema": "https://aka.ms/codetour-schema",
+  "title": "Diet Train",
+  "steps": [
+    {
+      "file": "rasa/nlu/classifiers/diet_classifier.py",
+      "description": "Diet模型训练入口",
+      "line": 870,
+      "title": "训练入口"
+    },
+    {
+      "file": "rasa/nlu/classifiers/diet_classifier.py",
+      "description": "## TrainingData转化为RasaModelData\n\npreprocess_train_data把 数据预处理，具体见数据处理的tour",
+      "line": 827
+    },
+    {
+      "file": "rasa/nlu/classifiers/diet_classifier.py",
+      "description": "## 模型准备-构造Layers",
+      "line": 1443
+    },
+    {
+      "file": "rasa/nlu/classifiers/diet_classifier.py",
+      "description": "## compile模型\neager模型方便Debug",
+      "line": 904
+    },
+    {
+      "file": "rasa/nlu/classifiers/diet_classifier.py",
+      "description": "## data generator构造",
+      "line": 919
+    },
+    {
+      "file": "rasa/nlu/classifiers/diet_classifier.py",
+      "description": "## fit模型",
+      "line": 934
+    },
+    {
+      "file": "rasa/utils/tensorflow/models.py",
+      "description": "## 自定义训练步骤\n自定义了Model，覆盖了train_step方法，实现自定义的训练loop\n调用了子类的batch_loss统一开始forward运算",
+      "line": 151
+    },
+    {
+      "file": "rasa/utils/tensorflow/data_generator.py",
+      "description": "## 训练：FeatureArray转化为Numpy数组\n\n这里是把自定义的数据结构转化为训练的数据格式传入data generator\n这里可能涉及到怎么把FeatureArray里面feautres的类型是obj的numpy array转换成标准数据类型的，shape的标准numpy矩阵数组",
+      "line": 115
+    },
+    {
+      "file": "rasa/nlu/classifiers/diet_classifier.py",
+      "description": "## 训练：通过data signature 恢复数据纬度（最后一个特征纬度）\n注意他返回的数据结构和Data类似是一个嵌套的dict，只是FeatureArray变成了Tensor: key->subkey->Tensor",
+      "line": 1593
+    },
+    {
+      "file": "rasa/utils/tensorflow/rasa_layers.py",
+      "description": "## 合并sparse和densefeature\n1. 把spare经过 sparse_dense层转换成dense特征，变`[batch_size,token_size,128]` 128是特征维度\n2. 把sparse与dense层concat，例如dense特征是`[batch_size,token_size,768]`,合并后就是`[batch_size,token_size,896]`",
+      "line": 338
+    },
+    {
+      "file": "rasa/utils/tensorflow/rasa_layers.py",
+      "description": "## 合并sentence和sequence特征\n就是在sequence特征的n个token的特征后面又加了一个句子的特征。\nshape:(batch_size,token_size,896)\ntoken_size包含了token的长度和句子的1",
+      "line": 666
+    },
+    {
+      "file": "rasa/utils/tensorflow/rasa_layers.py",
+      "description": "## 合并后的特征一起进入FN层(空的？)",
+      "line": 1004
+    },
+    {
+      "file": "rasa/utils/tensorflow/rasa_layers.py",
+      "description": "## 进入两层的Transformer\n\noutput_shape:(batch_size,token_size,256) token_size包含了token的长度和句子的1",
+      "line": 1032
+    },
+    {
+      "file": "rasa/nlu/classifiers/diet_classifier.py",
+      "description": "## 计算label\n* `tf_batch_data[LABEL][SENTENCE]` 里面包含了数据中的label的onehot形式,shape:[batch_size, 1, label_cnt], 1是特征数量，因为是label，只有一个sentence特征（就是句子意图label的onehot的形式）\n* output_shape (batch_size,label_cnt) onehot的形式",
+      "line": 1669
+    },
+    {
+      "file": "rasa/nlu/classifiers/diet_classifier.py",
+      "description": "## 计算所有可能label对应的id和embedding\n这里有9个label，所有就是9个\nembedding是通过Embed层取出的（就是一个没有激活的dense层），embedding纬度是设置的20，（所以这个Emed的kernel的shape是[9,20]）",
+      "line": 1573
+    },
+    {
+      "file": "rasa/nlu/classifiers/diet_classifier.py",
+      "description": "## 计算模型预测的label的embedding\n* 这里直接用的最后一个token的输出（就是sentence feature对应的输出）映射成了embeddding（直接`[batch_szie,256]->[batch_size,20]` 而不是 先转换成token 0-9，再计算embedding`[batch_szie,9]->[batch_size,20]`）\n",
+      "line": 1575
+    },
+    {
+      "file": "rasa/nlu/classifiers/diet_classifier.py",
+      "description": "## 计算ground truth的label的embedding\n* 用的label的token的输出 ，算embedding`[batch_szie,9]->[batch_size,20]`\n",
+      "line": 1576
+    },
+    {
+      "file": "rasa/nlu/classifiers/diet_classifier.py",
+      "description": "## 构造损失函数（包含负采样）",
+      "line": 1578
+    },
+    {
+      "file": "rasa/utils/tensorflow/layers.py",
+      "description": "## batch内负采样\n以target为目标为每一个example生产N个（20个）负样本构造出矩阵，因为这个举证是随机采样的，可能采样到相同label的样本，需要mask掉。\n* get_negs第一个参数和第二个参数是batch内的embedding和对应的label，\n* get_negs第三个参数是返需要对比的target的label（也就是我们这个batch的label），他是我们生成neg的依据，因此\n  * 他的shape[0]和我们输出的negs的shape[0]相关\n  * 生成mask矩阵中的元素需要与他对比。（因为上面正样本就是这个target，这里是想生成负样本）\n* 他的返回值的有两个矩阵，\n  * 第一个矩阵就是构造的负样本矩阵，他的纬度shape[0]和target的shape[0]一样，shape[1]是20是每个正样本生成负样本数量，shape[2]是embedding的纬度\n  * 第二个表示第一个矩阵里面有一些值被mask了。（具体说是mask的是sample到了同样label的input）\n",
+      "line": 959
+    },
+    {
+      "file": "rasa/utils/tensorflow/layers.py",
+      "description": "## 计算batch内相似度",
+      "line": 1199
+    }
+  ],
+  "ref": "main"
+}

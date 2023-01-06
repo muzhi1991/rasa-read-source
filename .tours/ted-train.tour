@@ -1,0 +1,132 @@
+{
+  "$schema": "https://aka.ms/codetour-schema",
+  "title": "TED Train",
+  "steps": [
+    {
+      "file": "rasa/core/policies/ted_policy.py",
+      "description": "## 准备训练数据: 把tracker转换成state features",
+      "line": 609
+    },
+    {
+      "file": "rasa/core/featurizers/tracker_featurizers.py",
+      "description": "## featurize: 准备single_state_featurizer\n* 该对象的_default_feature_states包含了需要featurize的特征",
+      "line": 329
+    },
+    {
+      "file": "rasa/core/featurizers/tracker_featurizers.py",
+      "description": "## featurize: 把tracker转换成`List[List[Stage]]`（同rule/stage的parse过程）\n* 一个tracker转换为多个stages列表,`List[List[Stage]]`\n* 每个stages列表包含多个stage，每个stage都是一个状态组合是一个Dict\n* stages列表,`List[Stage]`例如 `[{'prev_action': {'action_name': 'action_listen'}, 'user': {'intent': 'weather'}},{.....}]`,\n* 等价于lookup的key",
+      "line": 334
+    },
+    {
+      "file": "rasa/core/featurizers/single_state_featurizer.py",
+      "description": "## featurize: 使用single_state_featurizer把一个Stage转换为`Map[attr,List[Features]]`\n* 这里的Feature和Message的Feature一样，标注了特征的attr（来自的字段），type（什么类型sequence，sentence），features（特征,shape(token_num,feature_dim)）\n* Feature比较特别的是这里的\n  * attr是，{'action_name', 'intent', 'entities', 'active_loop'}这种表示特征的名称，例如对话的意图，对话的实体，映射关系如下：\n    * pre_action.action_name -> action_name\n    * user.intent -> intent\n    * user.entities -> entities\n    * active_loop -> active_loop\n    * 相见代码\n  * type都是sentecne，所以feautre的shape基本是（1，dim）这里的dim就是特征的值个数（n个intent）\n\n* 之所以是List[Feature]，和以前的一样，表示可能每个attr会有多个特征（似乎这里都是一个）\n\nPS：其实List[Feature]和Map[attr,List[Features]]可以相互转换，因为Feature里面有attr。",
+      "line": 254
+    },
+    {
+      "file": "rasa/core/featurizers/tracker_featurizers.py",
+      "description": "## feature: 生成`List[List[Map[attribute,List[Feautre]]]]`结构\n这里理解一下这个结果\n* 最外层List，表示样本的个数\n* 第二个List，表示每个样本里面的Dialogue的Turn数\n* 里面的Map表示每个Turn的对话的特征的属性，例如{'action_name', 'intent', 'entities', 'active_loop'}\n* 最里面的List，表示每个属性的特征个数，这里应该是1\n* Feature就是特征，里面是一个numpy的array或者sparsearray，shape是(token_num,dim)，英文这里的Feautres都是sentence，所以是（1，dim)",
+      "line": 123
+    },
+    {
+      "file": "rasa/core/policies/ted_policy.py",
+      "description": "## featurize: 创建RasaModelData",
+      "line": 625
+    },
+    {
+      "file": "rasa/core/policies/ted_policy.py",
+      "description": "## featurize: 数据格式转换(同Diet Data Preprocess里面的)\n* 把`List[List[Map[attribute,List[Feautre]]]]` 即，最外面是Message的list，每一个Message包含一个dialog turn的list（上一步加上的），每个dialog turn 包含attr的map，映射到特征`features:List[Feautre]`，变换成Map<attribute,List[List[List[Feautre]]]>\n  * 注意：在Diet Data Preprocess中，输入的纬度是`List[Map[attribute,List[Feautre]]]` ，是后面又手动加上Dialog的纬度\n* 然后把Map<attribute,List[List[List[Feautre]]]>，转化成Data格式，即Map[attribute, Map[type, List[FeatureArray]]]（相当于把Feature里面的type提出来了，Batch和Dialog纬度放到里面）\n  * 注意：FeatureArray里面的纬度比Feautre又多了一个dialog的纬度。",
+      "line": 538,
+      "selection": {
+        "start": {
+          "line": 504,
+          "character": 9
+        },
+        "end": {
+          "line": 504,
+          "character": 31
+        }
+      }
+    },
+    {
+      "file": "rasa/core/policies/ted_policy.py",
+      "description": "## featurize: 添加dialoge length特征",
+      "line": 565,
+      "selection": {
+        "start": {
+          "line": 558,
+          "character": 9
+        },
+        "end": {
+          "line": 558,
+          "character": 26
+        }
+      }
+    },
+    {
+      "file": "rasa/core/policies/ted_policy.py",
+      "description": "## 准备训练数据: 构造RasaModelData",
+      "line": 625,
+      "selection": {
+        "start": {
+          "line": 639,
+          "character": 16
+        },
+        "end": {
+          "line": 639,
+          "character": 26
+        }
+      }
+    },
+    {
+      "file": "rasa/core/policies/ted_policy.py",
+      "description": "## 构建模型：构建TED模型 prepare_layers\n",
+      "line": 656
+    },
+    {
+      "file": "rasa/core/policies/ted_policy.py",
+      "description": "## train: 构建all label embedding表\n* 相当于一个loopup的表，就是有多少种label（例如这里target有25种action_name0）这个表达shape[0]=25,embedding的dim是shape[1]=20",
+      "line": 1986,
+      "selection": {
+        "start": {
+          "line": 1991,
+          "character": 64
+        },
+        "end": {
+          "line": 1991,
+          "character": 83
+        }
+      }
+    },
+    {
+      "file": "rasa/core/policies/ted_policy.py",
+      "description": "## train: 处理收入的数据，转化为feature\n* 输入的特征的shape是dialog展开的，shape就是(batch_size里面每个dialog的数量只和，token_num=1, 特征的onehot大小).因此每个特征的第一个纬度大小不一样\n* 这里的输出是恢复了batch和dialog纬度的(batch_size,max_dialog_num,dim),\n  * max_dialog_num是batch内dialog的最大值，应为每个example的对话turn数量不一样。\n  * 这里的dim是合并后的特征纬度。",
+      "line": 1991
+    },
+    {
+      "file": "rasa/core/policies/ted_policy.py",
+      "description": "## train-_process_batch_data: 还原shape",
+      "line": 1728
+    },
+    {
+      "file": "rasa/core/policies/ted_policy.py",
+      "description": "## train-_process_batch_data: concat 的特征（64.25.140）\n注意合并的特征的选择，\n* 前两个固定是user的信息和action信息（intent,action_name），如果是文本就是(text,action_text)，注意，这两个特征都是经过了fnn变成了50纬度的\n* 后面接的是多个其他特征，例如 entities,active_loop等，这些特征都是只经过了sparse_dense层，20纬度的",
+      "line": 1829
+    },
+    {
+      "file": "rasa/core/policies/ted_policy.py",
+      "description": "## train: 进入dialog的transform，取last token输出(64,1,128)\n* 注意里面有一个reverse的操作",
+      "line": 1999
+    },
+    {
+      "file": "rasa/core/policies/ted_policy.py",
+      "description": "## train-dialog transformers: reverse了输入序列\n* 他的目的是确保最后一轮的position是0，倒数第二轮是1，以此类推。\n* 下面去了最后一个token的输出，其实就是原来的第一个token的输出作为分类头（cls？）",
+      "line": 1438
+    },
+    {
+      "file": "rasa/core/policies/ted_policy.py",
+      "description": "## train: 计算loss，类似diet",
+      "line": 2004
+    }
+  ],
+  "ref": "main"
+}

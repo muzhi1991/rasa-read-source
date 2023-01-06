@@ -341,7 +341,7 @@ class DIETClassifier(GraphComponent, IntentClassifier, EntityExtractorMixin):
                 f"If number of transformer layers is 0, "
                 f"'{MASKED_LM}' option should be 'False'."
             )
-
+    
     def _check_share_hidden_layers_sizes(self) -> None:
         if self.component_config.get(SHARE_HIDDEN_LAYERS):
             first_hidden_layer_sizes = next(
@@ -902,7 +902,8 @@ class DIETClassifier(GraphComponent, IntentClassifier, EntityExtractorMixin):
             # No pre-trained model to load from. Create a new instance of the model.
             self.model = self._instantiate_model_class(model_data)
             self.model.compile(
-                optimizer=tf.keras.optimizers.Adam(self.component_config[LEARNING_RATE])
+                optimizer=tf.keras.optimizers.Adam(self.component_config[LEARNING_RATE]),
+                run_eagerly=False
             )
         else:
             if self.model is None:

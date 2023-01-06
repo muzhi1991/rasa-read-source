@@ -1,0 +1,32 @@
+{
+  "$schema": "https://aka.ms/codetour-schema",
+  "title": "Diet Details",
+  "steps": [
+    {
+      "file": "rasa/utils/tensorflow/data_generator.py",
+      "description": "## 使用increase的batch size\n\n线性增长的batch size，根据google的peper，似乎可以替代learning rate decay。效果更好一下（缺点就是对大模型不友好，需要显存，这里模型比较小）",
+      "line": 415
+    },
+    {
+      "file": "rasa/utils/tensorflow/model_data.py",
+      "description": "## 数据均衡策略\n* 有些数据集里面的intent很不均衡，需要均衡一下，这里的均衡策略是构造每个batch，对每个batch内的数据进行补充，确保每个label都照顾到（用整体的比例）\n* 但是，不太准确，根据代码，不是正好一个batch size的数据进行补全，以为计算是向下取整的。。\n* 算法细节：\n  * 先吧每个label（indices_of_labels表表示）的遍历次数放列表里面num_data_cycles，确保数据集的所有label都必须完整的至少过一遍（数量少的可能过了很多遍）。\n  * skip控制那些稀少的类不要重复太密（这里就是会skip一个batch再采样）",
+      "line": 687
+    },
+    {
+      "file": "rasa/utils/tensorflow/layers.py",
+      "description": "## 模型细节：稀疏的FC层\nRandomlyConnectedDense会把Transfomer里面大量的FC层替换成他\n* 模型入口input的embedding映射层（把输入的向量映射成tranformer的输入向量大小,默认256），\n* 从Embedding转换成QKV的层的三个映射层\n* 计算self-attention的weight权重后，输出有个映射层\n* transformer块里面的fc层的两个（变成4倍，在映射回去各自一个）\n\nDiet模型中\n* dense&&sparse特征合并完成后，Feed Forward层（注意现在默认模型大部分这一层都空的，可以在sequence和sentence特征都加上）\n\n其他注意：\n* 从spare特征转换到dense特征的这个映射（DenseForSparse）没有用稀疏层，而是完整的dense。\n* 其他的Embed层还是使用的普通Dense。例如从text/label的feature转成成20纬度的embed向量。（注意区分Transformer内部的Embedding层，256纬度的向量）",
+      "line": 225
+    },
+    {
+      "file": "rasa/utils/tensorflow/transformer.py",
+      "description": "## 模型细节: Transformer默认没有使用相对位置编码\n* 论文中使用说使用了attention的相对位置编码.\n* 参考的相对位置编码起源于Google的论文《Self-Attention with Relative Position Representations》\n* 可以设置对key或者value使用相对位置编码\n",
+      "line": 291
+    },
+    {
+      "file": "rasa/utils/tensorflow/transformer.py",
+      "description": "## 模型细节: Transformer使用的是输入层的sin的位置编码",
+      "line": 612
+    }
+  ],
+  "ref": "main"
+}

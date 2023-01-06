@@ -1,0 +1,48 @@
+{
+  "$schema": "https://aka.ms/codetour-schema",
+  "title": "Diet Data Preprocess",
+  "steps": [
+    {
+      "file": "rasa/graph_components/providers/nlu_training_data_provider.py",
+      "description": "## 生成TrainingData数据\n里面包含message的list，其中\n* nlu_examples 这个列表包含nlu的数据\n* training_examples 最全，包含nlu，action，intent的数据",
+      "line": 51
+    },
+    {
+      "file": "rasa/nlu/tokenizers/tokenizer.py",
+      "description": "## 分割Tokens\n给每个message的data里面增加 xx_tokens 字段，（xx表示属性，例如text）表示分割成token，里面包含Token类",
+      "line": 134
+    },
+    {
+      "file": "rasa/nlu/featurizers/dense_featurizer/lm_featurizer.py",
+      "description": "# 计算Dense Feature\n* 给每一个Message添加features属性，features是一个Feature类的list\n* Feature类，包含了attribute，type和feature（一个numpy矩阵，真实的特征）\n* 每一个Feature是上面计算出的某个attribute（即text等）的某种（即type：sequence，sentence等）的特征。\n* 注意：Feature是一个包含feautres的类，\n  * 包含features：对应的是是narray、sparsearray（numpy的数据结构），shape是（token_num，densen_feature_size),如果是sentence的feature，token_num=1.\n  * 包含attr：表示这个Feature是来自于那个属性计算出来的\n  * 包含type：表示特征的类型，例如sequence和sentence\n",
+      "line": 732
+    },
+    {
+      "file": "rasa/nlu/classifiers/diet_classifier.py",
+      "description": "## preprocess_train_data把TrainingData转化为RasaModelData\n* TrainingData里面包含`nlu_examples:List[Message]`，下面是把Message里面的`features:List[Feature]`转换为RasaModelData里的Data。\n* RasaModelData里面的，核心data包含了数据结构是Data是一个Dict结构，表示了\n  * key：作用的属性，比如text，表示是text字段能算出的特征\n  * value：也是个Dict，\n    * key表示了type，mask，sequence和sentence，表示text字段是的mask特征，序列特征，句子特征\n    * value是一个list，`[FeatureArray]`，这个list好像都是长度1(并不是，有多个feautrizer的时候就多个了)，每个元素表示一个具体特征，里面是一个矩阵，注意他们\n      * text的sequence特征shape可以是`[num,token_count,768]`，注意token_count是变量，因为不同聚酯带token数量不同，也就是这个FeatureArray里面的feature不是一个numpy的数字矩阵，是一个obj类型的numpy array。\n      * text的sentence特征shape是`[num,1,768]`\n      * entities的entity特征的shape是`[num,token_count,1]`，注意token_count是变量，也就是这个FeatureArray里面的feature不是一个numpy的数字矩阵，是一个obj的numpy array。\n\n除此之外，里面还有label_key和label_sub_key 表示这个`data[label_key][label_sub_key]`数据里面哪个表示的是label（似乎不全面，比如有多个label）\n还在data里面加入了entities表示加入了实体的特征（bilou各种标记）\n\nFeatureArray存储了一个特征，是一个numpy 的array，但是未必是一个矩阵（例如上面的）可能是一个object的np.array。还存储了真实的维度，number_of_dimensions，表示这是一个几层嵌套的array",
+      "line": 827
+    },
+    {
+      "file": "rasa/utils/tensorflow/model_data_utils.py",
+      "description": "## 数据嵌套\n把`List[Map<attr, List[Feautre]>]` --> `List[List[Map<attr, List[Feautre]>]]`",
+      "line": 304
+    },
+    {
+      "file": "rasa/utils/tensorflow/model_data_utils.py",
+      "description": "## 数据格式转换\n把`List[List[Map[attribute,List[Feautre]]]]` 即，最外面是Message的list，每一个Message包含一个dialog turn的list（上一步加上的），每个dialog turn 包含attr的map，映射到特征`features:List[Feautre]`，变换成\nMap<attribute,List[List[List[Feautre]]]>\n",
+      "line": 307
+    },
+    {
+      "file": "rasa/utils/tensorflow/model_data_utils.py",
+      "description": "## consider_dialogue_dimension的作用\n这里输入的其实是一个一个message，message里面的features属性似乎定义的是可以包含多轮对话的。(里面的feautre是一个list)\n其中输入的数据就有dialog这个维度（值都是1，就是单轮，我们需要的数据是一个input的text一个要预测的意图，而不是多个text）\n这个把多个message合并为训练数据，每个dialog都是1，就没必要了",
+      "line": 386
+    },
+    {
+      "file": "rasa/nlu/classifiers/diet_classifier.py",
+      "description": "## 构造RasaModelData数据结构\n注意里面包含的data的Data格式，这里是嵌套的dict：key->subkey->list[FeatureArray]",
+      "line": 751
+    }
+  ],
+  "ref": "main",
+  "isPrimary": true
+}

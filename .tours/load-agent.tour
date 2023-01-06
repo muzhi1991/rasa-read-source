@@ -1,0 +1,47 @@
+{
+  "$schema": "https://aka.ms/codetour-schema",
+  "title": "Load Agent",
+  "steps": [
+    {
+      "file": "rasa/core/run.py",
+      "description": "## 在Sanic Server启动时加载模型",
+      "line": 211
+    },
+    {
+      "file": "rasa/core/agent.py",
+      "description": "## 加载模型（构造MessageProcessor对象）",
+      "line": 254
+    },
+    {
+      "file": "rasa/core/processor.py",
+      "description": "## load：从文件压缩包解压，读取graph && metadata\n* graph 会加载各种Component\n* metadata包含domain",
+      "line": 122
+    },
+    {
+      "file": "rasa/engine/loader.py",
+      "description": "## load: 加载metadata，如domain\n* metadata包含的信息：\n  * 预测的图的信息：predict_schema\n  * domain的信息\n* 路径：解压的临时目录下的`metadata.json`文件",
+      "line": 26
+    },
+    {
+      "file": "rasa/engine/loader.py",
+      "description": "## load: 加载predict graph\n|  name  | class | construct |  fn  | needs |\n|  ----  | ----  | --------  | ---- | ----  | \n| nlu_message_converter        | NLUMessageConverter     | load | convert_user_message | {'messages': '__message__'}|\n| run_JiebaTokenizer0          | JiebaTokenizer          | load | process              | {'messages': 'nlu_message_converter'}|\n| run_LanguageModelFeaturizer1 | LanguageModelFeaturizer | load | process              | {'messages': 'run_JiebaTokenizer0'}|\n| run_RegexFeaturizer2         | RegexFeaturizer         | load | process              | {'messages': 'run_LanguageModelFeaturizer1'}|\n| run_DIETClassifier3          | DIETClassifier          | load | process              | {'messages': 'run_RegexFeaturizer2'}|\n| run_ResponseSelector4        | ResponseSelector        | load | process              | {'messages': 'run_DIETClassifier3'}|\n| run_EntitySynonymMapper5     | EntitySynonymMapper     | load | process              | {'messages': 'run_ResponseSelector4'}|\n| run_RegexMessageHandler      | RegexMessageHandler     | load | process              | {'messages': 'run_EntitySynonymMapper5', 'domain': 'domain_provider'}|\n| domain_provider              | DomainProvider          | load | provide_inference    | {}    |\n| run_MemoizationPolicy0       | MemoizationPolicy       | load | predict_action_probabilities| {'domain': 'domain_provider', 'tracker': '__tracker__', 'rule_only_data': 'rule_only_data_provider'}|\n| run_TEDPolicy1               | TEDPolicy               | load | predict_action_probabilities| {'domain': 'domain_provider', 'tracker': '__tracker__', 'rule_only_data': 'rule_only_data_provider'}|\n| run_RulePolicy2              | RulePolicy              | load | predict_action_probabilities| {'domain': 'domain_provider', 'tracker': '__tracker__', 'rule_only_data': 'rule_only_data_provider'}|\n| rule_only_data_provider      | RuleOnlyDataProvider    | load | provide              | {}    |\n| select_prediction            | DefaultPolicyPredictionEnsemble| load | combine_predictions_from_kwargs| {'policy0': 'run_MemoizationPolicy0', 'policy1': 'run_TEDPolicy1', 'policy2': 'run_RulePolicy2', 'domain': 'domain_provider', 'tracker': '__tracker__'}|\n",
+      "line": 29
+    },
+    {
+      "file": "rasa/core/agent.py",
+      "description": "## load: 加载domain，set到trackerStore里面\n以后生成的所有tracker都包含这个domain了",
+      "line": 365
+    },
+    {
+      "file": "rasa/utils/tensorflow/models.py",
+      "description": "## 加载RasaModel：加载Diet模型",
+      "line": 429
+    },
+    {
+      "file": "rasa/utils/tensorflow/models.py",
+      "description": "## 加载RasaModel：尝试运行一个推断",
+      "line": 438
+    }
+  ],
+  "ref": "main"
+}

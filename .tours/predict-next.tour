@@ -1,0 +1,52 @@
+{
+  "$schema": "https://aka.ms/codetour-schema",
+  "title": "Predict Next",
+  "steps": [
+    {
+      "file": "rasa/core/processor.py",
+      "description": "## 开始执行预测下个命令的graph model\n* 会依次执行config.yml里面定义的policy，包含MemoizationPolicy TEDPolicy RulePolicy，执行的fn是predict_action_probabilities\n* 最终的target是select_prediction组件,对应的类是DefaultPolicyPredictionEnsemble，执行的fn是combine_predictions_from_kwargs\n",
+      "line": 1005
+    },
+    {
+      "file": "rasa/core/policies/rule_policy.py",
+      "description": "## predict: 执行rule policy\n会从tracker里面遍历最近的events，并根据rule的设置看看是否匹配上了\n* tracker中取出N轮的state,表示状态的变化过程\n  * `{\"prev_action\": {\"action_name\": \"action_listen\"}, \"user\": {\"intent\": \"weather\"}}`\n  * `{\"active_loop\": {\"name\": \"weather_form\"}, \"prev_action\": {\"action_name\": \"weather_form\"}, \"user\": {\"intent\": \"weather\"}}`\n  * 注意这里状态的关键字prev_action（必须的），\"user\"：表示用户说的话，active_loop：form的状态\n* 对比lookup的记录（通过rule文件生成）决定下一个动作\n* 匹配的原则：\n  * 如果上下文长的turn于lookup的记录turn，只要lookup的turn的长度完全匹配就行\n  * 如果turn的状态没有pre_action字段，表示这个turn是会话开始，必须同时都是会话开始的两个状态才等价（任何一个不是都不等价，都不是会话开始的state就需要比较内部的字段）\n",
+      "line": 1108
+    },
+    {
+      "file": "rasa/core/policies/memoization.py",
+      "description": "## predict: 执行memory policy\n* 去读story里面的events，并和tracker里面的events（所有的转换成了state并hash）\n* 注意：tracker的状态通过MaxHistoryTrackerFeaturizer读取，设置了最大的历史状态数量.",
+      "line": 251
+    },
+    {
+      "file": "rasa/core/policies/ted_policy.py",
+      "description": "## predict: 执行 ted policy",
+      "line": 827
+    },
+    {
+      "file": "rasa/core/policies/ensemble.py",
+      "description": "## predict: 执行最终的ensemble，返回最好的PolicyPrediction",
+      "line": 99,
+      "selection": {
+        "start": {
+          "line": 112,
+          "character": 10
+        },
+        "end": {
+          "line": 112,
+          "character": 26
+        }
+      }
+    },
+    {
+      "file": "rasa/core/processor.py",
+      "description": "## 选择最高概率的action",
+      "line": 456
+    },
+    {
+      "file": "rasa/core/processor.py",
+      "description": "## 执行action\n注意：policy也能返回一些events，需要先更新个性eventns到tracker",
+      "line": 774
+    }
+  ],
+  "ref": "main"
+}

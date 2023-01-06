@@ -1,0 +1,67 @@
+{
+  "$schema": "https://aka.ms/codetour-schema",
+  "title": "FormAction",
+  "steps": [
+    {
+      "file": "rasa/core/actions/action.py",
+      "description": "## 触发form逻辑，构造FormAction\n* policy的action如，果指向的是domain里面定义的form（看action的name是不在`domain.form_names`）里面。\n* 如果在会构造FormAction对象，并返回\n* 有一种特殊情况，就是这个form的Action是用户自定义的（在domain.yml的actions里面定义了），会通过RemoteAction调用Action Server。",
+      "line": 194,
+      "selection": {
+        "start": {
+          "line": 194,
+          "character": 38
+        },
+        "end": {
+          "line": 194,
+          "character": 55
+        }
+      }
+    },
+    {
+      "file": "rasa/core/actions/loops.py",
+      "description": "## 检测form是否激活\n* 就是看tracker里面的active_loop的name变量是否等于这个form action的name",
+      "line": 24
+    },
+    {
+      "file": "rasa/core/actions/loops.py",
+      "description": "## 激活active form\n* 设置track的active_loop是当前的form\n* 调用form Action的 activate函数\n  * 执行extract action，并更新tracker，检测是否都填完required slot，如果完成直接返回slotSet\n  * 如果还有没有完成的则调用validate。。",
+      "line": 25
+    },
+    {
+      "file": "rasa/core/actions/forms.py",
+      "description": "## is_done: 检测是否完成form逻辑\n完成的条件，为events_so_far（本轮form逻辑触发的Events）包含下面任意一个event\n* SlotSet(REQUESTED_SLOT, None)\n* ActiveLoop( None)\n\nPS： 如果包含任何ActionExecutionRejected表示没有执行成功，还是没有done！！",
+      "line": 653,
+      "selection": {
+        "start": {
+          "line": 650,
+          "character": 9
+        },
+        "end": {
+          "line": 650,
+          "character": 22
+        }
+      }
+    },
+    {
+      "file": "rasa/core/actions/loops.py",
+      "description": "## 如果已经activate&&没有done，执行do函数",
+      "line": 33
+    },
+    {
+      "file": "rasa/core/actions/forms.py",
+      "description": "## do:检测是否有`validate_{form action}`并验证已经有的slot\n\n* 检测是否有`validate_{form_name}`的action",
+      "line": 635
+    },
+    {
+      "file": "rasa/core/actions/forms.py",
+      "description": "## do:请求下一个需要required_slot\n* 查看是否is_done，如果done了，则返回events `REQUESTED_SLOT`这个Slot的值置为None（`[SlotSet(REQUESTED_SLOT, None)]`）\n* 检查events_so_far（从进入本轮loop以来触发的events）是否包含REQUESTED_SLOT这个SlotSet把，如果有则先请求这个slot（会触发请求这个slot的utter action并返回BotUtter的Event）\n* 如果没有，则查找下一个domain设置了，但是还没有填上的required slot，先添加Event：`SlotSet(REQUESTED_SLOT, slot_to_request)`，然后请求这个slot（会触发请求这个slot的utter action并返回BotUtter的Event）\n* 如果查找不到下一个没有填上的required slot，返回`[SlotSet(REQUESTED_SLOT, None)]`",
+      "line": 638
+    },
+    {
+      "file": "rasa/core/actions/loops.py",
+      "description": "## deactivate:如果已经done了，执行deactivate\n* 注意这里再次调用了is_done，再次判断了上面所有的so_far_events，是否满足done条件",
+      "line": 37
+    }
+  ],
+  "ref": "main"
+}

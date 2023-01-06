@@ -1,0 +1,112 @@
+{
+  "$schema": "https://aka.ms/codetour-schema",
+  "title": "Handle Message",
+  "steps": [
+    {
+      "file": "rasa/core/channels/rest.py",
+      "description": "## Sanic的webhook入口\n\n* 通过channel的blueprint注入到sannic",
+      "line": 139,
+      "selection": {
+        "start": {
+          "line": 137,
+          "character": 33
+        },
+        "end": {
+          "line": 137,
+          "character": 40
+        }
+      }
+    },
+    {
+      "file": "rasa/core/channels/channel.py",
+      "description": "## Sanic接受到UserMessage",
+      "line": 89,
+      "selection": {
+        "start": {
+          "line": 88,
+          "character": 15
+        },
+        "end": {
+          "line": 88,
+          "character": 22
+        }
+      }
+    },
+    {
+      "file": "rasa/core/processor.py",
+      "description": "## 开始nlu解析部分 parse_message\n这里就调用各个nlu的 graph component来处理用户输入的text",
+      "line": 687
+    },
+    {
+      "file": "rasa/core/processor.py",
+      "description": "## 开始执行graph模型infer",
+      "line": 664
+    },
+    {
+      "file": "rasa/graph_components/converters/nlu_message_converter.py",
+      "description": "## infer: UserMessage->Message",
+      "line": 38
+    },
+    {
+      "file": "rasa/nlu/tokenizers/tokenizer.py",
+      "description": "## infer: process 分词tokenize\n* Message的data里面添加了 text_tokens字段",
+      "line": 139
+    },
+    {
+      "file": "rasa/nlu/featurizers/dense_featurizer/lm_featurizer.py",
+      "description": "## infer: process 调用embedding模型计算特征\n* lm_featureizer调用了tranformers的bert模型计算特征，增加了Message的features字段\n* 是Features类型，是对data里面的text属性计算的特征，包含了seqence和sentence的type",
+      "line": 739
+    },
+    {
+      "file": "rasa/nlu/featurizers/sparse_featurizer/regex_featurizer.py",
+      "description": "## infer: process 调用正则表达式计算spare特征\n* 每个正则都会增加一个Feature到message.feautres里面\n* Feature是包含一个稀疏矩阵，1表示命中正则的token",
+      "line": 146
+    },
+    {
+      "file": "rasa/nlu/classifiers/diet_classifier.py",
+      "description": "## infer: 调用Diet模型计算intent和entity\n* 会把输入的Message转化从模型需要的RasaModelData类型\n* 最后，会在Message.data结果中加入intent/intent_ranking/entities字段",
+      "line": 1034
+    },
+    {
+      "file": "rasa/nlu/selectors/response_selector.py",
+      "description": "## infer: 调用ResponseSelect模型\n* 不管什么情况都会调用这个模型，模型会吧nlu的设置里面的xxx/yyy的这些意图（这里叫retrieval_intent）单独进行预测（以他们xxx/yyy为类别分类）,疑问：如果有多个不同xxx，是怎么分类？？\n* 输出会在Message.data添加key为response_selector的字典\n\n```json\n{\n    \"all_retrieval_intents\":[\"chitchat\"],\n    \"default\":{\n        \"response\":{\n            \"responses\": [{\"text\": \"我能帮你查找中国大陆地区城市级别的当下和未来两天的天气情况。\"}], \n            \"confidence\": 0.997401237487793, \n            \"intent_response_key\": \"chitchat/whatyoucando\", \n            \"utter_action\": \"utter_chitchat/whatyoucando\"},\n        \"ranking\":\n           [\n              {\"confidence\": 0.997401237487793, \"intent_response_key\": \"chitchat/whatyoucando\"},\n              {\"confidence\": 0.0025987864937633276, \"intent_response_key\": \"chitchat/whoyouare\"}\n            ]\n        }\n}\n```\n",
+      "line": 530,
+      "selection": {
+        "start": {
+          "line": 587,
+          "character": 40
+        },
+        "end": {
+          "line": 587,
+          "character": 47
+        }
+      }
+    },
+    {
+      "file": "rasa/nlu/extractors/entity_synonyms.py",
+      "description": "## infer: post-process 同义词替换模块",
+      "line": 88
+    },
+    {
+      "file": "rasa/nlu/classifiers/regex_message_handler.py",
+      "description": "## infer: post-process 处理收到的文本是`/intent`的情况",
+      "line": 51
+    },
+    {
+      "file": "rasa/core/processor.py",
+      "description": "## nlu解析完成后，在agent中把结果包装成UserUttered放入tracker",
+      "line": 691
+    },
+    {
+      "file": "rasa/core/processor.py",
+      "description": "## 执行extract slots这个内置Action\n\n* 执行ActionExtractSlots这个action\n* 他的作用是遍历所有domain中提到的slots，从tracker里面取message的entity尝试填充每个slot（通过slot定义的mapping字段）。返回N个slotset的events并执行\n* 注意如果slot的mapping里面使用了自定义的action，那么会调用action并返回events。\n* 返回的所有events会执行\n  * 首先查看有events里面没有BotUttered，如果有就发送消息给用户（_send_bot_messages）\n  * 然后执行所有events，并真正更新tracker里面的状态-slots（tracker.update_with_events）\n",
+      "line": 147
+    },
+    {
+      "file": "rasa/core/processor.py",
+      "description": "## 进入决策policy的predict loop\n* 会获循环取下一个Action并执行得到Events，再更新tracker状态。\n* 终止条件：\n  * Listen",
+      "line": 753
+    }
+  ],
+  "ref": "main"
+}

@@ -1,0 +1,17 @@
+{
+  "$schema": "https://aka.ms/codetour-schema",
+  "title": "ReadPoint",
+  "steps": [
+    {
+      "file": "rasa/utils/tensorflow/rasa_layers.py",
+      "description": "明天从这里开始",
+      "line": 638
+    },
+    {
+      "file": "rasa/shared/core/generator.py",
+      "description": "## core训练的数据增强",
+      "line": 628
+    }
+  ],
+  "ref": "main"
+}

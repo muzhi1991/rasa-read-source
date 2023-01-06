@@ -661,7 +661,8 @@ class TEDPolicy(Policy):
                 self._entity_tag_specs,
             )
             self.model.compile(
-                optimizer=tf.keras.optimizers.Adam(self.config[LEARNING_RATE])
+                optimizer=tf.keras.optimizers.Adam(self.config[LEARNING_RATE]),
+                run_eagerly=False
             )
         (
             data_generator,

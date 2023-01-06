@@ -1,0 +1,142 @@
+{
+  "$schema": "https://aka.ms/codetour-schema",
+  "title": "Rule Parse",
+  "steps": [
+    {
+      "file": "rasa/model_training.py",
+      "description": "## Train: 加载fileimporter\n最外面是E2EImporter，里面会使用RasaFileImporter",
+      "line": 116
+    },
+    {
+      "file": "rasa/shared/importers/importer.py",
+      "description": "## RasaFileImporter：构造rasa配置文件读取器",
+      "line": 165
+    },
+    {
+      "file": "rasa/shared/importers/rasa.py",
+      "description": "## RasaFileImporter：查找story && rule文件\n这里的story 和 rule的 一起找的",
+      "line": 35
+    },
+    {
+      "file": "rasa/graph_components/providers/story_graph_provider.py",
+      "description": "## Train: story_graph_provider 加载Stroy（这里包含了stories和rules）\n* StoryGraph里面包含了steps 分别是RuleStep和StoryStep\n* 根据train的graph，后续的traning_tracker_provider会使用这个数据\n",
+      "line": 43
+    },
+    {
+      "file": "rasa/shared/importers/rasa.py",
+      "description": "## 读取stories && rules 入口\n_story_files 包含了rules和stories相关的配置文件",
+      "line": 60
+    },
+    {
+      "file": "rasa/shared/core/training_data/loading.py",
+      "description": "## YAMLStoryReader读取ymal的story文件",
+      "line": 80
+    },
+    {
+      "file": "rasa/shared/core/training_data/story_reader/yaml_story_reader.py",
+      "description": "## string -> StoryStep/RuleStep",
+      "line": 134
+    },
+    {
+      "file": "rasa/shared/core/training_data/story_reader/yaml_story_reader.py",
+      "description": "## 新构建一个story",
+      "line": 254
+    },
+    {
+      "file": "rasa/shared/core/training_data/story_reader/story_reader.py",
+      "description": "## new: 构建StoryStepBuilder\n后面的所有操作都是往里面加Event",
+      "line": 71
+    },
+    {
+      "file": "rasa/shared/core/training_data/story_reader/yaml_story_reader.py",
+      "description": "## new: 添加condiditon相关Event，调用`_parse_step`\n注意：虽然都是parse step，但是这里设置了_is_parsing_conditions=True，会在`_parse_step`调用`_add_event`的时候特殊处理，构建的RuleStep里面标记了这是一个condition。",
+      "line": 838
+    },
+    {
+      "file": "rasa/shared/core/training_data/story_reader/yaml_story_reader.py",
+      "description": "## new: 添加起始Event(注意顺序)\n* 如果没有设置conversation_start，用_add_event添加一个snip action被执行的Event\n* 注意：他可能不是第一个Event，如果有Condition他才是第一个",
+      "line": 840
+    },
+    {
+      "file": "rasa/shared/core/training_data/story_reader/yaml_story_reader.py",
+      "description": "## 解析每个rule的steps",
+      "line": 257,
+      "selection": {
+        "start": {
+          "line": 243,
+          "character": 9
+        },
+        "end": {
+          "line": 243,
+          "character": 14
+        }
+      }
+    },
+    {
+      "file": "rasa/shared/core/training_data/story_reader/yaml_story_reader.py",
+      "description": "## step-添加Event: intent/user会生成UserUttered",
+      "line": 278
+    },
+    {
+      "file": "rasa/shared/core/training_data/story_reader/yaml_story_reader.py",
+      "description": "## step-添加Event：对于Action，会添加ActionExecuted(xxx)\n* 里面调用了`_add_event(action_name)`方法，这个会查找所有的Event子类是否符合action_name，因为我们传入的是action，没有event是这个名字所以默认会使用ActionExecuted这个Event",
+      "line": 282
+    },
+    {
+      "file": "rasa/shared/core/training_data/story_reader/yaml_story_reader.py",
+      "description": "## step-添加Event: 对于active_loop，添加ActiveLoop这个Event",
+      "line": 292
+    },
+    {
+      "file": "rasa/shared/core/training_data/story_reader/yaml_story_reader.py",
+      "description": "## step-添加Event: slot_was_set 会添加SlotSet这个Event",
+      "line": 290
+    },
+    {
+      "file": "rasa/shared/core/training_data/story_reader/story_step_builder.py",
+      "description": "## add_event内部分割构建RuleStep\n上面的添加Event操作最后都会event添加到builder里面，即调用StoryStepBuilder的`add_event`函数\n* 该函数会根据情况看看是否要分割Event来构建多个RuleStep，一般情况最后就一个Step",
+      "line": 104
+    },
+    {
+      "file": "rasa/shared/core/training_data/story_reader/yaml_story_reader.py",
+      "description": "## 结束一个story\n* 如果配置了wait_for_user_input==false，会特殊处理\n* 就会加入一个snip action作为结尾\n\n",
+      "line": 259
+    },
+    {
+      "file": "rasa/shared/core/training_data/story_reader/yaml_story_reader.py",
+      "description": "## 最终获得storyStep/RuleStep",
+      "line": 160
+    },
+    {
+      "file": "rasa/graph_components/providers/training_tracker_provider.py",
+      "description": "# Train: training_tracker_provider把storySteps/ruleSteps加载到Tracker中恢复state\n* 通过StroyStep里面的events回放到tracker中，实现状态恢复\n* 后面core的训练统一使用Tracker--TrackerWithCachedStates来做输入",
+      "line": 54,
+      "selection": {
+        "start": {
+          "line": 44,
+          "character": 15
+        },
+        "end": {
+          "line": 44,
+          "character": 38
+        }
+      }
+    },
+    {
+      "file": "rasa/shared/core/training_data/structures.py",
+      "description": "## training_tracker_provider：加载RuleStep-添加Listen相关Event\n添加ActionExecuted(listen）这个Event的规则：\n* 在userutter的event之前（对应的是intent action）\n* 在最后结束加一个\n",
+      "line": 278
+    },
+    {
+      "file": "rasa/core/policies/rule_policy.py",
+      "description": "## rule_policy: 把Tracker的Event转换为state\n几个基本规则\n* lookup表的key是从状态的序列化值\n* 一个StepRule会对应一个tracker，会生在lookup表里面成多个key，分割的方法\n  * 按照action 进行分割\n ",
+      "line": 749
+    },
+    {
+      "file": "rasa/core/policies/rule_policy.py",
+      "description": "## rule_policy: 去除空的状态",
+      "line": 753
+    }
+  ],
+  "ref": "main"
+}
